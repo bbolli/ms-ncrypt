@@ -33,15 +33,15 @@ struct Keys {
     Keys(LPCWSTR providerName) noexcept {
         if (NCryptOpenStorageProvider(&hProv, providerName, 0) != ERROR_SUCCESS)
             return;
+        void* state{};
         NCryptKeyName* kn;
         while (NCryptEnumKeys(hProv, nullptr, &kn, &state, NCRYPT_SILENT_FLAG) == ERROR_SUCCESS)
             keys.emplace_back(kn);
+        NCryptFreeBuffer(state);
     }
     ~Keys() noexcept {
         if (hProv)
             NCryptFreeObject(hProv);
-        if (state)
-            NCryptFreeBuffer(state);
         for (auto k : keys)
             NCryptFreeBuffer(k);
     }
@@ -52,7 +52,6 @@ struct Keys {
     NCRYPT_PROV_HANDLE provider() const { return hProv; }    
 private:
     NCRYPT_PROV_HANDLE hProv{};
-    void* state{};
     type keys;
 };
 
