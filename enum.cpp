@@ -40,10 +40,10 @@ struct Keys {
         NCryptFreeBuffer(state);
     }
     ~Keys() noexcept {
-        if (hProv)
-            NCryptFreeObject(hProv);
         for (auto k : keys)
             NCryptFreeBuffer(k);
+        if (hProv)
+            NCryptFreeObject(hProv);
     }
 
     using type = std::vector<NCryptKeyName*>;
