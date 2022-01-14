@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <ncrypt.h>
 
+#include <limits>
 #include <string>
 #include <vector>
 #include <gsl/span>
@@ -55,27 +56,44 @@ private:
     type keys;
 };
 
+
 struct Key {
     Key(NCRYPT_PROV_HANDLE hProv, NCryptKeyName* keyName) noexcept {
         NCryptOpenKey(hProv, &key, keyName->pszName, keyName->dwLegacyKeySpec, 0);
     }
     ~Key() noexcept {
         NCryptFreeObject(key);
+        X509_free(certificate);
     }
     NCRYPT_KEY_HANDLE get() const noexcept { return key; }
 
-    std::basic_string<BYTE> certificate() noexcept {
+    std::vector<BYTE> read() noexcept {
         DWORD size{};
         NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY, nullptr, 0, &size, 0);
-        auto buf = std::basic_string<BYTE>();
+        auto buf = std::vector<BYTE>(size);
         if (size) {
-            buf.resize(size, '\0');
-            NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY, buf.data(), buf.size(), &size, 0);
+            NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY, buf.data(),
+                              size, &size, 0);
         }
         return buf;
     }
+
+    X509* x509() noexcept {
+        if (certificate)
+            return certificate;
+        auto cert = read();
+        if (auto len = cert.size(); len && len < std::numeric_limits<long>::max()) {
+            const unsigned char* in = cert.data();
+            certificate = d2i_X509(nullptr, &in, static_cast<long>(len));
+        } else {
+            certificate = nullptr;
+        }
+        return certificate;
+    }
+
 private:
     NCRYPT_KEY_HANDLE key{};
+    X509* certificate{};
 };
 
 
