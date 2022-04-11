@@ -1,13 +1,14 @@
-//#define WIN32_MEAN_AND_LEAN
+#define WIN32_MEAN_AND_LEAN
 #include <Windows.h>
 #include <ncrypt.h>
 
 #include <limits>
 #include <string>
 #include <vector>
+#include <span>
+
 #include <fmt/format.h>
 #include <fmt/xchar.h>
-#include "gsl/span"
 
 #include <openssl/asn1.h>
 #include <openssl/x509.h>
@@ -23,7 +24,7 @@ struct Providers {
         NCryptFreeBuffer(pl);
     }
 
-    using type = gsl::span<NCryptProviderName>;
+    using type = std::span<NCryptProviderName>;
 
     type get() const { return providers; }
 private:
