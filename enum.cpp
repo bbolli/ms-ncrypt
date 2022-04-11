@@ -1,11 +1,13 @@
-#define WIN32_MEAN_AND_LEAN
+//#define WIN32_MEAN_AND_LEAN
 #include <Windows.h>
 #include <ncrypt.h>
 
 #include <limits>
 #include <string>
 #include <vector>
-#include <gsl/span>
+#include <fmt/format.h>
+#include <fmt/xchar.h>
+#include "gsl/span"
 
 #include <openssl/asn1.h>
 #include <openssl/x509.h>
@@ -99,32 +101,26 @@ private:
 
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     std::wstring msg;
-    /*
+
     auto providers = Providers{};
     msg.append(L"Storage providers:\n");
     for (auto const& p : providers.get())
-        msg.append(p.pszName).append(L"\n");
+        fmt::format_to(std::back_inserter(msg), L"{}\n", p.pszName);
     msg.append(L"\n");
-    */
-    msg.append(L"Keys:\n");
-    Keys keys(MS_SMART_CARD_KEY_STORAGE_PROVIDER);
+
+    auto keys = Keys{MS_SMART_CARD_KEY_STORAGE_PROVIDER};
+    fmt::format_to(std::back_inserter(msg), L"Keys: {}\n", keys.get().size());
     for (auto k : keys.get()) {
         Key key(keys.provider(), k);
-        auto cert = key.certificate();
-        const unsigned char* in = cert.data();
-        long len = cert.size();
-        if (len) {
-            auto x509 = d2i_X509(nullptr, &in, len);
+        if (auto x509 = key.x509()) {
             auto subj = X509_get_subject_name(x509);
             char sn[1024];
-            auto ne = X509_NAME_oneline(subj, sn, sizeof sn);
-            MessageBoxA(NULL, ne, "Subject name", MB_OK);
-            X509_NAME_free(subj);
-            X509_free(x509);
-            //return 0;
-            msg.append(k->pszName).append(L", ").append(k->pszAlgid)
-                // .append(L" ").append(wsn)
-                .append(L", ").append(std::to_wstring(len)).append(L" bytes\n");
+            if (X509_NAME_oneline(subj, sn, sizeof sn)) {
+                wchar_t wsn[1024];
+                MultiByteToWideChar(CP_ACP, 0, sn, int(strlen(sn) + 1), wsn, 1024);
+                fmt::format_to(std::back_inserter(msg), L"{}: {}, {}\n", wsn,
+                               k->pszName, k->pszAlgid);
+            }
         }
     }
 
