@@ -14,11 +14,22 @@
 #include <openssl/x509.h>
 
 
+void error_check(HRESULT res, char const* call) {
+    if (res == ERROR_SUCCESS)
+        return;
+    fmt::print("Error {:#08x} in {}\n", static_cast<ULONG>(res), call);
+    exit(1);
+}
+
+
+#define CHECK(call) error_check(call, #call)
+
+
 struct Providers {
     Providers() noexcept {
         DWORD n;
-        if (NCryptEnumStorageProviders(&n, &pl, 0) == ERROR_SUCCESS)
-            providers = { pl, static_cast<size_t>(n) };
+        CHECK(NCryptEnumStorageProviders(&n, &pl, 0));
+        providers = { pl, static_cast<size_t>(n) };
     }
     ~Providers() noexcept {
         NCryptFreeBuffer(pl);
@@ -35,8 +46,7 @@ private:
 
 struct Keys {
     Keys(LPCWSTR providerName) noexcept {
-        if (NCryptOpenStorageProvider(&hProv, providerName, 0) != ERROR_SUCCESS)
-            return;
+        CHECK(NCryptOpenStorageProvider(&hProv, providerName, 0));
         void* state{};
         NCryptKeyName* kn;
         while (NCryptEnumKeys(hProv, nullptr, &kn, &state, NCRYPT_SILENT_FLAG) == ERROR_SUCCESS)
@@ -62,7 +72,8 @@ private:
 
 struct Key {
     Key(NCRYPT_PROV_HANDLE hProv, NCryptKeyName* keyName) noexcept {
-        NCryptOpenKey(hProv, &key, keyName->pszName, keyName->dwLegacyKeySpec, 0);
+        CHECK(NCryptOpenKey(hProv, &key, keyName->pszName,
+                            keyName->dwLegacyKeySpec, 0));
     }
     ~Key() noexcept {
         NCryptFreeObject(key);
@@ -75,8 +86,8 @@ struct Key {
         NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY, nullptr, 0, &size, 0);
         auto buf = std::vector<BYTE>(size);
         if (size) {
-            NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY, buf.data(),
-                              size, &size, 0);
+            CHECK(NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY,
+                                    buf.data(), size, &size, 0));
         }
         return buf;
     }
