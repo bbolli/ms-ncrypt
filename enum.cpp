@@ -123,30 +123,30 @@ private:
 
 
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-    std::wstring msg;
-
+#if 0
     auto providers = Providers{};
-    msg.append(L"Storage providers:\n");
+    fmt::print("Storage providers:\n");
     for (auto const& p : providers.get())
-        fmt::format_to(std::back_inserter(msg), L"{}\n", p.pszName);
-    msg.append(L"\n");
-
+        fmt::print(L"{}\n", p.pszName);
+    fmt::print("\n");
+#endif
     auto keys = Keys{MS_SMART_CARD_KEY_STORAGE_PROVIDER};
-    fmt::format_to(std::back_inserter(msg), L"Keys: {}\n", keys.get().size());
+    fmt::print("# Keys: {}\n", keys.get().size());
     for (auto k : keys.get()) {
         Key key(keys.provider(), k);
+        fmt::print(L"name: {}, {}, {}\n", k->pszName, k->pszAlgid, key.rdr());
         if (auto x509 = key.x509()) {
             auto subj = X509_get_subject_name(x509);
             char sn[1024];
             if (X509_NAME_oneline(subj, sn, sizeof sn)) {
-                wchar_t wsn[1024];
-                MultiByteToWideChar(CP_ACP, 0, sn, int(strlen(sn) + 1), wsn, 1024);
-                fmt::format_to(std::back_inserter(msg), L"{}: {}, {}\n", wsn,
-                               k->pszName, k->pszAlgid);
+                fmt::print("    {}\n", sn);
+            } else {
+                fmt::print("    X509_NAME_oneline() failed\n");
             }
+        } else {
+            fmt::print("    certificate is empty\n");
         }
     }
 
-    MessageBoxW(NULL, msg.data(), L"Providers and keys", MB_OK);
     return 0;
 }
