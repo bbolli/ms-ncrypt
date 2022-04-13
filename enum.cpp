@@ -63,7 +63,7 @@ struct Keys {
     using type = std::vector<NCryptKeyName*>;
 
     type const& get() const { return keys; }
-    NCRYPT_PROV_HANDLE provider() const { return hProv; }    
+    NCRYPT_PROV_HANDLE provider() const { return hProv; }
 private:
     NCRYPT_PROV_HANDLE hProv{};
     type keys;
