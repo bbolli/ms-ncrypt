@@ -74,12 +74,22 @@ struct Key {
     Key(NCRYPT_PROV_HANDLE hProv, NCryptKeyName* keyName) noexcept {
         CHECK(NCryptOpenKey(hProv, &key, keyName->pszName,
                             keyName->dwLegacyKeySpec, 0));
+        DWORD size{};
+        NCryptGetProperty(key, NCRYPT_READER_PROPERTY, nullptr, 0, &size, 0);
+        reader.resize(size);
+        if (size) {
+            CHECK(NCryptGetProperty(key, NCRYPT_READER_PROPERTY,
+                                    (PBYTE)reader.data(), size, &size, 0));
+            // the reader name is NUL-padded; trim it
+            reader.erase(reader.find(L'\0'));
+        }
     }
     ~Key() noexcept {
         NCryptFreeObject(key);
         X509_free(certificate);
     }
     NCRYPT_KEY_HANDLE get() const noexcept { return key; }
+    std::wstring_view rdr() const noexcept { return reader; }
 
     std::vector<BYTE> read() noexcept {
         DWORD size{};
@@ -107,6 +117,7 @@ struct Key {
 
 private:
     NCRYPT_KEY_HANDLE key{};
+    std::wstring reader;
     X509* certificate{};
 };
 
