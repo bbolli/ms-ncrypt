@@ -12,6 +12,9 @@
 #include <openssl/asn1.h>
 #include <openssl/x509.h>
 
+
+namespace ncrypt {
+
 void error_check(HRESULT res, char const* call) {
     if (res == ERROR_SUCCESS)
         return;
@@ -118,3 +121,5 @@ private:
     std::wstring reader;
     X509* certificate{};
 };
+
+} // namespace ncrypt

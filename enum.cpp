@@ -5,16 +5,17 @@
 
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #if 0
-    auto providers = Providers{};
+    auto providers = ncrypt::Providers{};
     fmt::print("Storage providers:\n");
     for (auto const& p : providers.get())
         fmt::print(L"{}\n", p.pszName);
     fmt::print("\n");
 #endif
-    auto keys = Keys{MS_SMART_CARD_KEY_STORAGE_PROVIDER};
+
+    auto keys = ncrypt::Keys{MS_SMART_CARD_KEY_STORAGE_PROVIDER};
     fmt::print("# Keys: {}\n", keys.get().size());
     for (auto k : keys.get()) {
-        Key key(keys.provider(), k);
+        auto key = ncrypt::Key{keys.provider(), k};
         fmt::print(L"name: {}, {}, {}\n", k->pszName, k->pszAlgid, key.rdr());
         if (auto x509 = key.x509()) {
             auto subj = X509_get_subject_name(x509);
