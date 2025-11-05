@@ -38,7 +38,8 @@ struct Providers {
 
     using type = std::span<NCryptProviderName>;
 
-    type get() const { return providers; }
+    auto get() const -> type { return providers; }
+
 private:
     type providers{};
     NCryptProviderName* pl{};
@@ -61,10 +62,12 @@ struct Keys {
             NCryptFreeObject(hProv);
     }
 
-    using type = std::vector<NCryptKeyName*>;
+    using element_type = NCryptKeyName*;
+    using type = std::vector<element_type>;
 
-    type const& get() const { return keys; }
-    NCRYPT_PROV_HANDLE provider() const { return hProv; }
+    auto get() const -> type const& { return keys; }
+    auto provider() const -> NCRYPT_PROV_HANDLE { return hProv; }
+
 private:
     NCRYPT_PROV_HANDLE hProv{};
     type keys;
@@ -89,10 +92,11 @@ struct Key {
         NCryptFreeObject(key);
         X509_free(certificate);
     }
-    NCRYPT_KEY_HANDLE get() const noexcept { return key; }
-    std::wstring_view rdr() const noexcept { return reader; }
 
-    std::vector<BYTE> read() noexcept {
+    auto get() const noexcept -> NCRYPT_KEY_HANDLE { return key; }
+    auto rdr() const noexcept -> std::wstring_view { return reader; }
+
+    auto read() noexcept -> std::vector<BYTE> {
         DWORD size{};
         NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY, nullptr, 0, &size, 0);
         auto buf = std::vector<BYTE>(size);
@@ -103,7 +107,7 @@ struct Key {
         return buf;
     }
 
-    X509* x509() noexcept {
+    auto x509() noexcept -> X509* {
         if (certificate)
             return certificate;
         auto cert = read();

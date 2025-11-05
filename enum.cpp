@@ -3,7 +3,8 @@
 
 #include "ncrypt.hpp"
 
-int WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+auto WinMain(HINSTANCE, HINSTANCE, LPSTR, int) -> int
+{
 #if 0
     auto providers = ncrypt::Providers{};
     fmt::print("Storage providers:\n");
