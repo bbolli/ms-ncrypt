@@ -68,6 +68,8 @@ struct Keys {
     auto get() const -> type const& { return keys; }
     auto provider() const -> NCRYPT_PROV_HANDLE { return hProv; }
 
+    auto key(element_type k) -> struct Key;
+
 private:
     NCRYPT_PROV_HANDLE hProv{};
     type keys;
@@ -125,5 +127,10 @@ private:
     std::wstring reader;
     X509* certificate{};
 };
+
+
+inline auto Keys::key(element_type k) -> Key {
+    return Key{hProv, k};
+}
 
 } // namespace ncrypt

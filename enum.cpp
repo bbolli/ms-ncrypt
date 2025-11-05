@@ -16,7 +16,7 @@ auto WinMain(HINSTANCE, HINSTANCE, LPSTR, int) -> int
     auto keys = ncrypt::Keys{MS_SMART_CARD_KEY_STORAGE_PROVIDER};
     fmt::print("# Keys: {}\n", keys.get().size());
     for (auto k : keys.get()) {
-        auto key = ncrypt::Key{keys.provider(), k};
+        auto key = keys.key(k);
         fmt::print(L"name: {}, {}, {}\n", k->pszName, k->pszAlgid, key.rdr());
         if (auto x509 = key.x509()) {
             auto subj = X509_get_subject_name(x509);
