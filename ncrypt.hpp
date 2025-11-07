@@ -65,10 +65,10 @@ struct Keys {
     using element_type = NCryptKeyName*;
     using type = std::vector<element_type>;
 
-    auto get() const -> type const& { return keys; }
-    auto provider() const -> NCRYPT_PROV_HANDLE { return hProv; }
+    auto get() const noexcept -> type const& { return keys; }
+    auto provider() const noexcept -> NCRYPT_PROV_HANDLE { return hProv; }
 
-    auto key(element_type k) -> struct Key;
+    auto key(element_type k) noexcept -> struct Key;
 
 private:
     NCRYPT_PROV_HANDLE hProv{};
@@ -129,7 +129,7 @@ private:
 };
 
 
-inline auto Keys::key(element_type k) -> Key {
+inline auto Keys::key(element_type k) noexcept -> Key {
     return Key{hProv, k};
 }
 

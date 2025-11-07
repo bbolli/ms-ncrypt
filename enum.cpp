@@ -3,7 +3,7 @@
 
 #include "ncrypt.hpp"
 
-auto WinMain(HINSTANCE, HINSTANCE, LPSTR, int) -> int
+auto WinMain(HINSTANCE, HINSTANCE, LPSTR, int) noexcept -> int
 {
 #if 0
     auto providers = ncrypt::Providers{};
