@@ -98,7 +98,7 @@ struct Key {
     auto get() const noexcept -> NCRYPT_KEY_HANDLE { return key; }
     auto rdr() const noexcept -> std::wstring_view { return reader; }
 
-    auto read() noexcept -> std::vector<BYTE> {
+    auto read() const noexcept -> std::vector<BYTE> {
         DWORD size{};
         NCryptGetProperty(key, NCRYPT_CERTIFICATE_PROPERTY, nullptr, 0, &size, 0);
         auto buf = std::vector<BYTE>(size);
@@ -109,7 +109,7 @@ struct Key {
         return buf;
     }
 
-    auto x509() noexcept -> X509* {
+    auto x509() const noexcept -> X509* {
         if (certificate)
             return certificate;
         auto cert = read();
@@ -125,7 +125,7 @@ struct Key {
 private:
     NCRYPT_KEY_HANDLE key{};
     std::wstring reader;
-    X509* certificate{};
+    mutable X509* certificate{};
 };
 
 

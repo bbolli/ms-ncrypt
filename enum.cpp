@@ -18,8 +18,8 @@ auto WinMain(HINSTANCE, HINSTANCE, LPSTR, int) -> int
     for (auto k : keys.get()) {
         auto key = keys.key(k);
         fmt::print(L"name: {}, {}, {}\n", k->pszName, k->pszAlgid, key.rdr());
-        if (auto x509 = key.x509()) {
-            auto subj = X509_get_subject_name(x509);
+        if (auto const x509 = key.x509()) {
+            auto const subj = X509_get_subject_name(x509);
             char sn[1024];
             if (X509_NAME_oneline(subj, sn, sizeof sn)) {
                 fmt::print("    {}\n", sn);
